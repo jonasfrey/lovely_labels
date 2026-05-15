@@ -9,3 +9,8 @@ dist/
 /Lovely Labels — 3D Name Plate Generator_files/
 /index-*.js
 
+# Server-only font files: licensed assets we deliberately don't ship to the
+# client. Rasterised text comes back via /api/text instead.
+/fonts/**
+!/fonts/.gitkeep
+

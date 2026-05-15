@@ -13,9 +13,15 @@ Browser-side generator for 3D-printable name plates. Rasterizes text (or an uplo
 deno task install        # one-time: cd client && npm install
 deno task dev            # vite dev server (recommended while iterating)
 deno task build          # vue-tsc + vite build → client/dist
-deno task serve          # serve client/dist via server.ts
+deno task serve          # serve client/dist + /api/* via server.ts
 deno task start          # build + serve
 ```
+
+While iterating, run `deno task serve` in one terminal and `deno task dev` in another — Vite proxies `/api/*` to `localhost:8080`, so the server-font endpoints are reachable from the dev frontend.
+
+## Server-rendered fonts
+
+Drop `.ttf` or `.otf` files anywhere under `fonts/` (subdirectories OK). The server scans the tree on first request and exposes each file as a dropdown entry; the client renders text by fetching `GET /api/text?text=…&font=<id>&fontPx=…`, which shells out to ImageMagick. Font files are gitignored and never bundled into `client/dist`, so licensed fonts stay on the server.
 
 ## Tile assets
 

@@ -4,7 +4,7 @@
     "dev": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "build-tiles": "deno run --allow-read --allow-write --allow-run=magick scripts/build_tiles.ts",
-    "serve": "deno run --allow-net --allow-read --allow-env server.ts",
+    "serve": "deno run --allow-net --allow-read --allow-env --allow-run=magick server.ts",
     "start": "deno task build && deno task serve"
   },
   "fmt": {

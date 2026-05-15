@@ -89,3 +89,13 @@ export const FONT_OPTIONS = [
 ] as const;
 
 export type FontOption = (typeof FONT_OPTIONS)[number];
+
+// Display shape used by the controls dropdown. Wider than FontOption because
+// server-rendered entries are appended at runtime from /api/fonts.
+export interface FontDisplayOption {
+  family: string;
+  label: string;
+  google: string | null;
+  weight?: number;
+  serverRendered?: boolean;
+}

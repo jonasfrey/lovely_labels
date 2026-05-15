@@ -7,11 +7,17 @@ import MeshPreview from "./components/MeshPreview.vue";
 import StatsBar from "./components/StatsBar.vue";
 import StripPreview from "./components/StripPreview.vue";
 import DownloadButton from "./components/DownloadButton.vue";
-import { buildDepthMap } from "./composables/useDepthMap";
+import { buildDepthMap, TEXT_SUPERSAMPLE } from "./composables/useDepthMap";
 import { buildMesh } from "./composables/useMeshBuilder";
 import { exportSTL } from "./composables/useSTLExport";
 import { useFontLoader } from "./composables/useFontLoader";
 import { useTileLibrary } from "./composables/useTileLibrary";
+import {
+  fetchServerTextImage,
+  isServerFont,
+  serverFontFamily,
+  useServerFonts,
+} from "./composables/useServerFonts";
 import { GLDepthRenderer } from "./composables/useGLDepthRenderer";
 import { summarizePlan } from "./composables/useFrame";
 import {
@@ -20,7 +26,13 @@ import {
   deriveLayoutForImage,
   measureTextMm,
 } from "./composables/useLayout";
-import type { FramePlanSummary, MeshStats, PlateConfig } from "./types";
+import {
+  FONT_OPTIONS,
+  type FontDisplayOption,
+  type FramePlanSummary,
+  type MeshStats,
+  type PlateConfig,
+} from "./types";
 
 const config = reactive<PlateConfig>({
   text: "Katja",
@@ -63,6 +75,17 @@ const building = ref(false);
 
 const { preloadAll, ensureLoaded } = useFontLoader();
 const { manifest, loadManifest, loadTileImage } = useTileLibrary();
+const { state: serverFonts, loadServerFonts } = useServerFonts();
+
+const fontOptions = computed<FontDisplayOption[]>(() => {
+  const dynamic: FontDisplayOption[] = serverFonts.fonts.map((f) => ({
+    family: serverFontFamily(f.id),
+    label: f.label,
+    google: null,
+    serverRendered: true,
+  }));
+  return [...dynamic, ...FONT_OPTIONS];
+});
 
 let renderer: GLDepthRenderer | null = null;
 let meshTimer: number | null = null;
@@ -86,39 +109,62 @@ async function getTileImage(): Promise<{ image: HTMLImageElement; id: string } |
 
 async function rebuildDepth() {
   if (!renderer) return null;
-  if (!config.customImage) {
-    const fontPx = config.fontSizeMm * config.vertexDensity * 2;
-    await ensureLoaded(config.fontFamily, fontPx);
-  }
-  // Plate + frame dims are derived from the rendered text (or custom image
-  // aspect) so the user only has to think about text size in mm.
   const tileFactor = config.frame.tileScaleFactor;
   const decoFactor = config.frame.decorationSizeFactor;
-  const layout = config.customImage
-    ? deriveLayoutForImage(
-        config.customImage,
-        config.fontSizeMm,
-        config.frame.shape,
-        tileFactor,
-        decoFactor,
-        config.textPaddingMm,
-        config.outerPaddingMm,
-      )
-    : (() => {
-        const m = measureTextMm(config.text, config.fontFamily, config.fontSizeMm);
-        return deriveLayout(
-          m.widthMm,
-          m.heightMm,
-          config.frame.shape,
-          tileFactor,
-          decoFactor,
-          config.textPaddingMm,
-          config.outerPaddingMm,
-        );
-      })();
+  const useServerFont = !config.customImage && isServerFont(config.fontFamily);
+
+  let serverTextImage: HTMLImageElement | null = null;
+  // Plate + frame dims are derived from the rendered text (or custom image
+  // aspect) so the user only has to think about text size in mm.
+  let layout;
+  if (config.customImage) {
+    layout = deriveLayoutForImage(
+      config.customImage,
+      config.fontSizeMm,
+      config.frame.shape,
+      tileFactor,
+      decoFactor,
+      config.textPaddingMm,
+      config.outerPaddingMm,
+    );
+  } else if (useServerFont) {
+    const pxPerMm = config.vertexDensity * TEXT_SUPERSAMPLE;
+    const fontPx = Math.max(8, Math.round(config.fontSizeMm * pxPerMm));
+    const text = config.text.length > 0 ? config.text : " ";
+    try {
+      serverTextImage = await fetchServerTextImage(config.fontFamily, text, fontPx);
+    } catch (e) {
+      console.warn("server text render failed", e);
+      serverTextImage = null;
+    }
+    const widthMm = serverTextImage ? serverTextImage.naturalWidth / pxPerMm : 1;
+    const heightMm = serverTextImage ? serverTextImage.naturalHeight / pxPerMm : 1;
+    layout = deriveLayout(
+      widthMm,
+      heightMm,
+      config.frame.shape,
+      tileFactor,
+      decoFactor,
+      config.textPaddingMm,
+      config.outerPaddingMm,
+    );
+  } else {
+    const fontPx = config.fontSizeMm * config.vertexDensity * TEXT_SUPERSAMPLE;
+    await ensureLoaded(config.fontFamily, fontPx);
+    const m = measureTextMm(config.text, config.fontFamily, config.fontSizeMm);
+    layout = deriveLayout(
+      m.widthMm,
+      m.heightMm,
+      config.frame.shape,
+      tileFactor,
+      decoFactor,
+      config.textPaddingMm,
+      config.outerPaddingMm,
+    );
+  }
   applyLayout(config, layout);
   const tile = await getTileImage();
-  const map = buildDepthMap(config, tile?.image ?? null, tile?.id ?? null, renderer);
+  const map = buildDepthMap(config, tile?.image ?? null, tile?.id ?? null, renderer, serverTextImage);
   depthCanvas.value = map.canvas;
   stripCanvas.value = map.stripCanvas;
   framePlanSummary.value = map.framePlan ? summarizePlan(map.framePlan) : null;
@@ -189,7 +235,7 @@ const showStrip = computed(() => config.frame.shape !== "none" && !!stripCanvas.
 
 onMounted(async () => {
   renderer = new GLDepthRenderer();
-  await Promise.all([preloadAll(), loadManifest()]);
+  await Promise.all([preloadAll(), loadManifest(), loadServerFonts()]);
   await rebuildAll();
 });
 
@@ -206,6 +252,7 @@ onBeforeUnmount(() => {
       :model-value="config"
       :tiles="manifest"
       :frame-plan="framePlanSummary"
+      :font-options="fontOptions"
       @update:model-value="onUpdate"
       @clear-image="clearImage"
     />

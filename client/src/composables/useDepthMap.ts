@@ -13,7 +13,7 @@ export interface DepthMap {
   framePlan: FramePlan | null;
 }
 
-const TEXT_SUPERSAMPLE = 2;
+export const TEXT_SUPERSAMPLE = 2;
 
 function gridSize(cfg: PlateConfig): { nx: number; ny: number } {
   const nx = Math.max(1, Math.round(cfg.widthMm * cfg.vertexDensity)) + 1;
@@ -98,6 +98,22 @@ function drawImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: numb
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
+// Server-rendered text comes in already rasterised at the depth-map
+// resolution, so we just blit it centred at its native size — no shrink-to-fit
+// pass like drawText, since plate dims were derived from the same image.
+function drawServerText(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  w: number,
+  h: number,
+): void {
+  const dw = img.naturalWidth;
+  const dh = img.naturalHeight;
+  const dx = (w - dw) / 2;
+  const dy = (h - dh) / 2;
+  ctx.drawImage(img, dx, dy);
+}
+
 interface TextRender {
   canvas: HTMLCanvasElement;
   version: number;
@@ -140,6 +156,7 @@ function renderTextCanvas(
   textPxW: number,
   textPxH: number,
   pxPerMm: number,
+  serverTextImage: HTMLImageElement | null,
 ): TextRender {
   if (!textCanvasCache) textCanvasCache = document.createElement("canvas");
   const canvas = textCanvasCache;
@@ -153,6 +170,8 @@ function renderTextCanvas(
 
   if (cfg.customImage) {
     drawImage(ctx, cfg.customImage, textPxW, textPxH);
+  } else if (serverTextImage) {
+    drawServerText(ctx, serverTextImage, textPxW, textPxH);
   } else {
     const box = textBoxFor(plan, cfg.widthMm, cfg.heightMm, pxPerMm);
     drawText(ctx, cfg, textPxW, textPxH, pxPerMm, box);
@@ -169,6 +188,7 @@ export function buildDepthMap(
   tileImage: HTMLImageElement | null,
   tileKey: string | null,
   renderer: GLDepthRenderer,
+  serverTextImage: HTMLImageElement | null = null,
 ): DepthMap {
   const { nx, ny } = gridSize(cfg);
   const plan = planFrame(cfg.frame);
@@ -177,7 +197,7 @@ export function buildDepthMap(
   const textPxPerMm = cfg.vertexDensity * TEXT_SUPERSAMPLE;
   const textPxW = Math.max(1, Math.round(cfg.widthMm * textPxPerMm));
   const textPxH = Math.max(1, Math.round(cfg.heightMm * textPxPerMm));
-  const text = renderTextCanvas(cfg, usePlan, textPxW, textPxH, textPxPerMm);
+  const text = renderTextCanvas(cfg, usePlan, textPxW, textPxH, textPxPerMm, serverTextImage);
 
   const contentRange = usePlan && tileImage && tileKey
     ? getTileContentRange(tileImage, tileKey)

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import {
-  FONT_OPTIONS,
+  type FontDisplayOption,
   type FrameConfig,
   type FrameShape,
   type FramePlanSummary,
@@ -13,6 +13,7 @@ const props = defineProps<{
   modelValue: PlateConfig;
   tiles: TileManifestEntry[];
   framePlan: FramePlanSummary | null;
+  fontOptions: FontDisplayOption[];
 }>();
 const emit = defineEmits<{
   (e: "update:modelValue", v: PlateConfig): void;
@@ -93,7 +94,7 @@ const shapeOptions: Array<{ value: FrameShape; label: string }> = [
           @change="patch('fontFamily', ($event.target as HTMLSelectElement).value)"
           :disabled="hasImage"
         >
-          <option v-for="f in FONT_OPTIONS" :key="f.family" :value="f.family">{{ f.label }}</option>
+          <option v-for="f in fontOptions" :key="`${f.family}|${f.label}`" :value="f.family">{{ f.label }}</option>
         </select>
       </label>
       <label>
