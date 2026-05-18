@@ -18,3 +18,6 @@ dist/
 # Resized copies are served on demand via /api/tile.
 /tile_masters/
 
+# Vendored binaries auto-downloaded by scripts/run.ts (e.g. ImageMagick 7).
+/.tools/
+
