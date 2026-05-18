@@ -1,4 +1,5 @@
 <script setup lang="ts">
+//license GPL Jonas Immanuel Frey
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from "vue";
 import * as THREE from "three";
 import ControlsPanel from "./components/ControlsPanel.vue";
@@ -7,6 +8,8 @@ import MeshPreview from "./components/MeshPreview.vue";
 import StatsBar from "./components/StatsBar.vue";
 import StripPreview from "./components/StripPreview.vue";
 import DownloadButton from "./components/DownloadButton.vue";
+import DonateButton from "./components/DonateButton.vue";
+import DonateModal from "./components/DonateModal.vue";
 import { buildDepthMap, TEXT_SUPERSAMPLE } from "./composables/useDepthMap";
 import { buildMesh } from "./composables/useMeshBuilder";
 import { exportSTL } from "./composables/useSTLExport";
@@ -231,10 +234,45 @@ function clearImage() {
   config.customImage = null;
 }
 
-function onDownload() {
+const DONATE_PROMPT_KEY = "ll.hideDonatePrompt";
+const donateModalOpen = ref(false);
+
+function doDownload() {
   if (!geometry.value) return;
   const name = config.customImage ? "nameplate" : config.text;
   exportSTL(geometry.value, name);
+}
+
+function onDownload() {
+  if (!geometry.value) return;
+  const hidden = (() => {
+    try {
+      return localStorage.getItem(DONATE_PROMPT_KEY) === "1";
+    } catch {
+      return false;
+    }
+  })();
+  if (hidden) {
+    doDownload();
+    return;
+  }
+  donateModalOpen.value = true;
+}
+
+function onDonateConfirm(dontShowAgain: boolean) {
+  donateModalOpen.value = false;
+  if (dontShowAgain) {
+    try {
+      localStorage.setItem(DONATE_PROMPT_KEY, "1");
+    } catch {
+      // localStorage unavailable (private mode etc.) — just skip persistence
+    }
+  }
+  doDownload();
+}
+
+function onDonateCancel() {
+  donateModalOpen.value = false;
 }
 
 const showStrip = computed(() => config.frame.shape !== "none" && !!stripCanvas.value);
@@ -266,8 +304,14 @@ onBeforeUnmount(() => {
       <header class="top-bar">
         <h1>Lovely Labels</h1>
         <span class="sub">3D Name Plate → STL</span>
+        <DonateButton />
         <DownloadButton :disabled="!geometry || building" @download="onDownload" />
       </header>
+      <DonateModal
+        :open="donateModalOpen"
+        @confirm="onDonateConfirm"
+        @cancel="onDonateCancel"
+      />
       <div class="previews" :class="{ 'with-strip': showStrip }">
         <DepthCanvas :source="depthCanvas" />
         <StripPreview v-if="showStrip" :source="stripCanvas" />
