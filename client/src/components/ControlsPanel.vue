@@ -1,4 +1,5 @@
 <script setup lang="ts">
+//license GPL Jonas Immanuel Frey
 import { computed } from "vue";
 import {
   type FontDisplayOption,
@@ -8,6 +9,7 @@ import {
   type PlateConfig,
   type TileManifestEntry,
 } from "../types";
+import FontPicker from "./FontPicker.vue";
 
 const props = defineProps<{
   modelValue: PlateConfig;
@@ -89,13 +91,12 @@ const shapeOptions: Array<{ value: FrameShape; label: string }> = [
       </label>
       <label>
         Font family
-        <select
-          :value="modelValue.fontFamily"
-          @change="patch('fontFamily', ($event.target as HTMLSelectElement).value)"
+        <FontPicker
+          :model-value="modelValue.fontFamily"
+          :options="fontOptions"
           :disabled="hasImage"
-        >
-          <option v-for="f in fontOptions" :key="`${f.family}|${f.label}`" :value="f.family">{{ f.label }}</option>
-        </select>
+          @update:model-value="patch('fontFamily', $event)"
+        />
       </label>
       <label>
         Text size (mm): {{ modelValue.fontSizeMm }}
