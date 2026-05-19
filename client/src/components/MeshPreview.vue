@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="panel">
-    <header>3D mesh preview</header>
+    <header>3D mesh preview (key size reference)</header>
     <div class="stage" ref="container"></div>
   </section>
 </template>

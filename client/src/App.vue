@@ -45,7 +45,7 @@ const config = reactive<PlateConfig>({
   // these defaults are only placeholders before the first measurement.
   widthMm: 80,
   heightMm: 30,
-  baseThicknessMm: 3,
+  baseThicknessMm: 4,
   embossHeightMm: 1.2,
   cornerRadiusMm: 4,
   textPaddingMm: -1,
