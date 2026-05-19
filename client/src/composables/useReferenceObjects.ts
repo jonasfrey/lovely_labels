@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { STLLoader } from "three/addons/loaders/STLLoader.js";
 
 export interface ReferenceDefinition {
   id: string;
   label: string;
   realWorldLengthMm: number;
-  gltfUrl: string;
+  assetUrl: string;
   fallbackColor: number;
   buildFallback: (lengthMm: number, color: number) => THREE.Group;
 }
@@ -38,9 +39,54 @@ export const BANANA: ReferenceDefinition = {
   id: "banana",
   label: "Banana (180 mm)",
   realWorldLengthMm: 180,
-  gltfUrl: "/reference/banana.glb",
+  assetUrl: "/reference/banana.glb",
   fallbackColor: 0xe8d24c,
   buildFallback: buildProceduralBanana,
+};
+
+function buildProceduralKey(lengthMm: number, color: number): THREE.Group {
+  // Crude key silhouette used only if the STL fails to load: a circular bow
+  // joined to a flat rectangular blade. Dimensions are scaled from the real
+  // key proportions so the fallback at least communicates "key, ~this big".
+  const group = new THREE.Group();
+  group.name = "reference-key-fallback";
+
+  const material = new THREE.MeshStandardMaterial({
+    color,
+    roughness: 0.45,
+    metalness: 0.6,
+  });
+
+  const bowRadius = lengthMm * 0.19;
+  const bowThickness = lengthMm * 0.04;
+  const bow = new THREE.Mesh(
+    new THREE.CylinderGeometry(bowRadius, bowRadius, bowThickness, 32),
+    material,
+  );
+  bow.rotation.x = Math.PI / 2;
+  bow.position.x = -lengthMm * 0.5 + bowRadius;
+  group.add(bow);
+
+  const bladeLen = lengthMm * 0.55;
+  const bladeH = lengthMm * 0.15;
+  const bladeT = lengthMm * 0.04;
+  const blade = new THREE.Mesh(
+    new THREE.BoxGeometry(bladeLen, bladeH, bladeT),
+    material,
+  );
+  blade.position.x = -lengthMm * 0.5 + bowRadius * 2 + bladeLen / 2;
+  group.add(blade);
+
+  return group;
+}
+
+export const KEY_YALE_STYLE: ReferenceDefinition = {
+  id: "key-yale-style",
+  label: "Key (57 mm)",
+  realWorldLengthMm: 57,
+  assetUrl: "/reference/key_yale_style.stl",
+  fallbackColor: 0xc8a850,
+  buildFallback: buildProceduralKey,
 };
 
 function normalizeToLength(group: THREE.Group, targetLengthMm: number): void {
@@ -85,11 +131,45 @@ async function loadGltf(url: string): Promise<THREE.Group | null> {
   });
 }
 
+async function loadStl(url: string, color: number): Promise<THREE.Group | null> {
+  return new Promise((resolve) => {
+    const loader = new STLLoader();
+    loader.load(
+      url,
+      (geometry) => {
+        geometry.computeVertexNormals();
+        const mesh = new THREE.Mesh(
+          geometry,
+          new THREE.MeshStandardMaterial({
+            color,
+            roughness: 0.45,
+            metalness: 0.6,
+          }),
+        );
+        const group = new THREE.Group();
+        group.add(mesh);
+        resolve(group);
+      },
+      undefined,
+      () => resolve(null),
+    );
+  });
+}
+
+async function loadAsset(def: ReferenceDefinition): Promise<THREE.Group | null> {
+  // Pick a loader based on file extension so authors can drop in either a GLB
+  // (with materials) or a raw STL (geometry only — falls back to flat shading
+  // with the reference's fallback color).
+  const lower = def.assetUrl.toLowerCase();
+  if (lower.endsWith(".stl")) return loadStl(def.assetUrl, def.fallbackColor);
+  return loadGltf(def.assetUrl);
+}
+
 export async function loadReferenceObject(def: ReferenceDefinition): Promise<THREE.Group> {
   const cached = cache.get(def.id);
   if (cached) return cached.then((g) => g.clone(true));
   const p = (async () => {
-    const loaded = await loadGltf(def.gltfUrl);
+    const loaded = await loadAsset(def);
     let group: THREE.Group;
     if (loaded) {
       group = new THREE.Group();

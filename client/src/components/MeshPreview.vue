@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
 import * as THREE from "three";
 import { createPreview, type ThreePreview } from "../composables/useThreePreview";
-import { BANANA, loadReferenceObject, disposeReference } from "../composables/useReferenceObjects";
+import { KEY_YALE_STYLE, loadReferenceObject, disposeReference } from "../composables/useReferenceObjects";
 import type { PlateConfig } from "../types";
 
 const props = defineProps<{
@@ -93,7 +93,7 @@ async function syncReference(): Promise<void> {
   const p = preview.value;
   if (!p) return;
   if (props.config.showReferenceObject && !referenceObj) {
-    referenceObj = await loadReferenceObject(BANANA);
+    referenceObj = await loadReferenceObject(KEY_YALE_STYLE);
     if (!props.config.showReferenceObject) {
       // Toggled off while loading.
       disposeReference(referenceObj);

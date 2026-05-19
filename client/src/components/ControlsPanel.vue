@@ -254,7 +254,7 @@ const shapeOptions: Array<{ value: FrameShape; label: string }> = [
         <input type="checkbox"
           :checked="modelValue.showReferenceObject"
           @change="patch('showReferenceObject', ($event.target as HTMLInputElement).checked)" />
-        Show reference object (180 mm banana)
+        Show reference object (57 mm key)
       </label>
     </section>
   </aside>
