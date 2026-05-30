@@ -1,0 +1,123 @@
+Informationen
+Das Vertiefungsprojekt ist die eigenständige Anwendung dessen, was in den Challenges geübt wurde. Das Ergebnis ist ein vollständiges, produktionsreifes Deployment einer eigenen Anwendung.
+
+Worum es geht
+Im Zentrum des Projekts stehen drei Aktivitäten, die zusammen das komplette Deployment-Handwerk abbilden.
+
+ 
+
+Die Containerisierung läuft über Dockerfiles und ein Compose-File, die Services sind sauber getrennt. Eine Pipeline, üblicherweise GitHub Actions, übernimmt Build, Tests und Veröffentlichung in eine Registry, sodass manuelle Schritte die Ausnahme bleiben. Die Zielplattform für das Deployment ist frei wählbar: eine Managed-Plattform wie Railway, Render oder Fly.io, eine Self-Hosted-Lösung wie Coolify auf einem eigenen Server oder ein Kubernetes-Cluster.
+
+ 
+
+Die drei Schritte greifen ineinander. Ein Push ins Git-Repository löst den Build aus, das fertige Image landet in einer Registry, die Zielplattform zieht es und startet die aktualisierte Anwendung.
+
+Rahmenbedingungen
+ 	 
+Arbeitsform	Einzel- oder Partnerarbeit
+Applikation	Eigene Entwicklung oder bestehendes Projekt
+Deployment-Tool	Frei wählbar, passend zur Anwendung und zum Zielsystem
+Deadline	30.05.2026, 23:59 Uhr
+Produktionsreife
+«Online» reicht nicht. Eine produktionsreife Anwendung erfüllt sechs Qualitätsmerkmale:
+
+Merkmal	Bedeutung
+Containerisiert	Alle Services laufen in Containern, nachvollziehbar über Dockerfile(s) und Compose-File
+Automatisiert	Deployment läuft über eine Pipeline, nicht per Hand
+Konfigurierbar	Environment-Variablen genutzt, Secrets sicher verwaltet
+Erreichbar	Anwendung läuft stabil unter einer definierten Adresse
+Überwachbar	Strukturierte Logs und funktionierende Healthchecks
+Dokumentiert	Projekt ist für Dritte aufsetzbar, Setup auf einem anderen Rechner reproduzierbar
+Diese sechs Merkmale bilden die Grundlage der Bewertung und werden in der Dokumentation nachgewiesen.
+
+Abgabe
+Abgabe via Teams bis 30.05.2026, 23:59.
+
+ 
+
+Enthalten sind der Git-Repository-Link mit vollständigem Code, Konfiguration und README.md, ein Screencast von 5 bis 10 Minuten, der den gesamten Deployment-Prozess zeigt (Push, Pipeline-Durchlauf, laufende Anwendung), sowie optional der Link zur laufenden Anwendung.
+
+Projektideen
+Mögliche Ausgangspunkte, wenn keine eigene Idee vorhanden ist:
+
+Idee	Beispiel-Stack	Schwerpunkt
+To-Do-Anwendung	React + Express + PostgreSQL	Klassiker mit Frontend, Backend, Datenbank
+Blog oder CMS	Next.js + API + Datenbank	SSR-Deployment, Build-Prozess
+REST-API	Express oder FastAPI + Datenbank + Swagger	API-fokussiert, gut testbar
+Chat-Anwendung	Node.js + WebSockets	Fragen zu Skalierung und State
+Portfolio-Website	Astro, Hugo oder Eleventy + CDN	Statisch, schnell, gut für CI/CD
+Bestehende Semesterarbeit	Stack aus einem früheren Modul	Vorhandenes Projekt produktionsreif machen
+Diese Liste ist nicht abschliessend. Eigene Ideen sind ausdrücklich willkommen, sofern der Deployment-Bezug erkennbar bleibt.
+
+Mindestanforderungen
+Für eine genügende Bewertung sind folgende Punkte erfüllt:
+
+Anwendung ist containerisiert, Dockerfile liegt im Repository
+CI/CD-Pipeline automatisiert mindestens Build und Deployment
+Deployment läuft auf einer Zielplattform (Managed Cloud, Self-Hosted wie Coolify, oder Kubernetes)
+Konfiguration über Environment-Variablen, keine Secrets im Code
+Healthcheck ist implementiert und funktioniert
+README enthält Architektur, Setup-Anleitung und Entscheidungsbegründungen
+Screencast zeigt Pipeline und laufende Anwendung
+Erweiterte Anforderungen
+Darüber hinausgehende Umsetzungen fliessen positiv in die Bewertung ein. 
+
+ 
+
+Mögliche Richtungen sind Monitoring und Logging (Prometheus, Grafana, Loki), eine bewusst gewählte und dokumentierte Deployment-Strategie (Rolling, Blue/Green, Canary), Security-Massnahmen (Non-Root-Container, Dependency Scanning, HTTPS), Infrastructure as Code (Terraform, Pulumi, Helm), eine Datenbank mit Backup-Strategie oder als Managed Service, automatisierte Tests in der Pipeline (Unit, Integration, E2E), eine Custom Domain oder ein Multi-Environment-Setup mit getrennten Dev- und Prod-Umgebungen.
+
+ 
+
+Welche Erweiterungen gewählt werden, ist abhängig von Anwendung und Plattform und wird im README begründet.
+
+Repository
+Ein Git-Repository mit vollständigem Code, Konfiguration und README.md. Das README ist die zentrale Dokumentation und deckt folgende Bereiche ab:
+
+Abschnitt	Inhalt
+Projektübersicht	Was die Anwendung ist und was sie tut
+Architekturübersicht	Services und ihre Kommunikation, als Text und Diagramm
+Technologie-Stack	Eingesetzte Tools und Technologien
+Setup-Anleitung	Schritt für Schritt, durch Dritte reproduzierbar
+Entscheidungsbegründungen	Warum diese Plattform, warum dieses Tool
+Learnings	Erkenntnisse aus dem Projekt, was rückblickend anders gelöst würde
+Für das Architektur-Diagramm genügt eine einfache Darstellung. Geeignete Werkzeuge sind draw.io (browserbasiert), Excalidraw (Whiteboard-Stil) oder Mermaid (Diagramme als Code, funktioniert direkt in GitHub-Markdown).
+
+Screencast
+Dauer 5 bis 10 Minuten. Gezeigt werden eine kurze Übersicht über die Repository-Struktur, ein ausgelöster Pipeline-Durchlauf nach einem Code-Push, die laufende und erreichbare Anwendung mit einem funktionalen Nachweis, Logs oder Monitoring sofern eingerichtet, sowie eine kurze Erklärung der Architektur.
+
+ 
+
+Der Screencast ist Pflicht. Ohne Screencast sind maximal 15 von 30 Punkten erreichbar.
+
+
+* Bewertungsraster LB2
+Bewertungsraster LB2
+Übersicht
+Bereich	Max. Punkte
+Deployment-Setup	12
+Dokumentation und Screencast	9
+Qualität und Best Practices	9
+Total	30
+Deployment-Setup (max. 12 Punkte)
+Kriterium	0 Punkte	1 Punkt	2 Punkte	3 Punkte
+Containerisierung	Kein Dockerfile	Dockerfile vorhanden, nicht optimiert	Layer-Caching, .dockerignore, sinnvolle Base-Image-Wahl	Multi-Stage, Non-Root, optimierte Image-Grösse
+CI/CD-Pipeline	Keine Pipeline	Nur Build	Build und Deploy automatisiert	Lint, Test, Build, Deploy mit definierter Branch-Strategie
+Konfiguration und Secrets	Secrets im Code	Env-Vars teilweise umgesetzt	Env-Vars korrekt genutzt, .env.example vorhanden	Secrets via Plattform oder Vault, Multi-Environment-Setup
+Deployment-Ziel	Nicht erreichbar	Läuft lokal oder einmalig	Stabil erreichbar unter definierter Adresse	Stabil erreichbar mit HTTPS und Healthcheck-gesteuertem Rollout
+Dokumentation und Screencast (max. 9 Punkte)
+Kriterium	0 Punkte	1 Punkt	2 Punkte	3 Punkte
+README	Kein README	Projektbeschreibung vorhanden	Architektur und Setup-Anleitung enthalten	Vollständig, Setup in unter 30min durch Dritte reproduzierbar
+Screencast	Kein Screencast	Unter 3 Minuten, unvollständig	5 bis 10 Minuten, Pipeline und Anwendung gezeigt	Kompletter Zyklus, Architektur erklärt, strukturiert präsentiert
+Entscheidungen und Learnings	Nicht vorhanden	Oberflächliche Begründungen	Technische Argumente für getroffene Entscheidungen	Alternativen abgewogen, Reflexion mit konkreten Learnings
+Qualität und Best Practices (max. 9 Punkte)
+Kriterium	0 Punkte	1 Punkt	2 Punkte	3 Punkte
+Security	Root-User, offene Ports	Teilweise umgesetzt	Non-Root, HTTPS, saubere Secret-Verwaltung	Zusätzlich Dependency-Scanning oder Security-Header
+Reproduzierbarkeit	Nicht nachbaubar	Teilweise nachbaubar	Komplett nachbaubar mit Dokumentation	Ein Befehl startet alles (zum Beispiel docker compose up)
+Komplexität und Ambition	Minimaler Aufwand erkennbar	Grundanforderungen erfüllt	Über das Minimum hinaus (zum Beispiel Monitoring, IaC)	Anspruchsvolles Setup mit mehreren erweiterten Aspekten
+Rahmenbedingungen
+Regel	Details
+Ohne Screencast	Maximal 15 von 30 Punkten
+Verspätete Abgabe	Pro angefangenem Tag −0.5 Noten
+Plagiate und Kopien	Note 1.0
+KI-Tools	Erlaubt, im README zu deklarieren. Wer KI-generierten Code nicht erklären kann, riskiert Punktabzug
+Deadline	30.05.2026, 23:59 Uhr (Screencast, Dokumentation, Artefakte)

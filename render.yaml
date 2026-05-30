@@ -13,10 +13,7 @@ services:
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     autoDeploy: true
-    # Render runs in the cloud and has NO access to the local .env (it's
-    # gitignored, so it isn't even in the repo Render clones). Non-secret prod
-    # config therefore lives here in the blueprint; real secrets would go in the
-    # dashboard or an env group. These mirror the defaults in .env.example.
+
     envVars:
       - key: PORT
         value: "8080"
