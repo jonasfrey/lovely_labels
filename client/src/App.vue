@@ -37,9 +37,8 @@ import {
   type PlateConfig,
 } from "./types";
 
-
 const config = reactive<PlateConfig>({
-  text: "adsf",
+  text: "Lovely Labels",
   fontFamily: '"Times New Roman", serif',
   fontSizeMm: 14,
   // Plate + frame dims are auto-derived from the rendered text in rebuildAll;
