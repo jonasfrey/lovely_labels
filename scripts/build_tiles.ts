@@ -19,6 +19,15 @@ const THUMBS_DIR = `${ROOT}client/public/tiles`;
 const MASTER_WIDTH = 2048;
 const THUMB_MAX = 64;
 
+// Same env var the server honours, so one .env controls every magick call.
+// Defaults to ImageMagick 7's `magick`; set MAGICK_BIN=convert for IM6 systems.
+const MAGICK_BIN = Deno.env.get("MAGICK_BIN") ?? "magick";
+
+// `identify` is a `magick` subcommand under IM7 but a standalone binary under
+// IM6, so derive the right invocation from MAGICK_BIN.
+const IDENTIFY_BIN = MAGICK_BIN === "magick" ? "magick" : "identify";
+const IDENTIFY_PREFIX = MAGICK_BIN === "magick" ? ["identify"] : [];
+
 interface ManifestEntry {
   id: string;
   thumb: string;
@@ -41,7 +50,7 @@ async function dirExists(path: string): Promise<boolean> {
 }
 
 async function runMagick(args: string[]): Promise<void> {
-  const cmd = new Deno.Command("magick", {
+  const cmd = new Deno.Command(MAGICK_BIN, {
     args,
     stderr: "piped",
     stdout: "piped",
@@ -54,8 +63,8 @@ async function runMagick(args: string[]): Promise<void> {
 }
 
 async function identifyDims(path: string): Promise<{ w: number; h: number }> {
-  const cmd = new Deno.Command("magick", {
-    args: ["identify", "-format", "%w %h", `${path}[0]`],
+  const cmd = new Deno.Command(IDENTIFY_BIN, {
+    args: [...IDENTIFY_PREFIX, "-format", "%w %h", `${path}[0]`],
     stdout: "piped",
     stderr: "piped",
   });

@@ -137,12 +137,17 @@ Das war's. Das Compose-File startet den Container mit eingebautem Healthcheck.
 **C) Ohne Docker (Dev-Mode):**
 
 ```bash
+cp .env.example .env      # optional: PORT / MAGICK_BIN anpassen (z. B. convert)
 deno task install         # client deps
 deno task dev             # Vite-Dev-Server :5173 (HMR)
 # in einem zweiten Terminal:
-deno task serve           # API-Server :8080
+deno task serve           # API-Server :8080 (lädt .env via --env-file)
 # Vite proxied /api/* automatisch
 ```
+
+> Die `deno task`-Befehle laden `.env` per `--env-file`. Fehlt die Datei, läuft
+> alles mit den Defaults weiter (Deno gibt nur eine Warnung aus). Docker/Render
+> nutzen `.env` nicht — dort kommen die Variablen aus Compose bzw. `render.yaml`.
 
 **Eigene Assets:**
 
@@ -155,7 +160,7 @@ deno task serve           # API-Server :8080
 |---|---|---|
 | **Render statt Vercel/Fly/Railway** | Free-Plan reicht für eine Single-Service-Demo, ist nicht serverless (Cold-Start-Probleme mit ImageMagick wären ein Risiko), beherrscht Docker-Web-Services nativ, und der Blueprint (`render.yaml`) ist als Infrastructure-as-Code-Beleg im Modul-Sinn ideal. | Vercel scheidet aus (Serverless, ImageMagick-Subprozess wäre eine Layer-Bastelei). Fly.io wäre auch passend, ist aber komplexer für ein One-Service-Setup. |
 | **Docker statt Render-Native-Runtime** | Mit Dockerfile entscheide ich exakt, welche ImageMagick-Version und Deno-Version laufen — Render's Native-Runtimes bieten kein offizielles Deno, und ImageMagick müsste über Build-Scripts installiert werden. Multi-Stage spart außerdem Image-Grösse (kein Node im Runtime-Image). | Native Deno-Buildpack (existiert teils auf Render, ist aber fragil); Render-eigener Server hätte ImageMagick erst recht nicht. |
-| **Deno statt Node/Express** | Server ist 350 Zeilen, ein `Deno.serve` reicht völlig. Deno hat ein eingebautes Permission-System (`--allow-run=magick`), das im Sicherheits-Kapitel des Moduls direkt das Prinzip "minimale Berechtigungen" demonstriert. TypeScript ohne Build-Tooling. | Node + Express wäre üblicher, aber mit `package.json`-Overhead und ohne natives Permission-Modell. |
+| **Deno statt Node/Express** | Server ist 350 Zeilen, ein `Deno.serve` reicht völlig. Deno hat ein eingebautes Permission-System (`--allow-run=magick,convert`), das im Sicherheits-Kapitel des Moduls direkt das Prinzip "minimale Berechtigungen" demonstriert. TypeScript ohne Build-Tooling. | Node + Express wäre üblicher, aber mit `package.json`-Overhead und ohne natives Permission-Modell. |
 | **ImageMagick 6 (Debian) statt IM7-Standalone-Binary** | Spart ~80 MB im Image und einen weiteren Build-Schritt. Die genutzten Optionen (`-resize`, `-colorspace`, `label:`) sind in IM6 und IM7 identisch; ein Symlink `magick → convert` macht den Aufruf in Code und Permissions versionsunabhängig. | IM7 statisches Binary herunterladen — funktioniert, ist aber unnötig komplex. |
 | **Lizenzierte Assets ins (private) Repo** | Render baut aus Git, also müssen Fonts/Tile-Master im Build-Context liegen. Eine externe Registry oder Render-Disk wäre zusätzlicher beweglicher Teil. Solange das Repo privat bleibt, ist das vertretbar. Die alten `.gitignore`-Regeln stehen kommentiert oben in `.gitignore` und lassen sich für ein Public-Switch in 30 Sekunden reaktivieren. | Render Persistent Disk (manuelles SCP nach jedem Deploy) oder Docker-Image vorab in Registry pushen (zusätzliche Pipeline). |
 | **JSON-Logs auf stdout statt File-/Service-Logger** | 12-Factor: die App weiss nichts über den Log-Sink. Render zeigt sie im Dashboard, lokal stehen sie in der Konsole, und ein späterer K8s-Sidecar (Loki/ELK) würde sie ohne Code-Änderung einsammeln. | Pino/Winston (Node-Welt — überdimensioniert für eine Hand voll Log-Calls). |

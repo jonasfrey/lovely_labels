@@ -35,4 +35,4 @@ EXPOSE 8080
 USER deno
 RUN deno cache server.ts
 
-CMD ["deno", "run", "--allow-net", "--allow-read", "--allow-env", "--allow-run=magick", "server.ts"]
+CMD ["deno", "run", "--allow-net", "--allow-read", "--allow-env", "--allow-run=magick,convert", "server.ts"]
