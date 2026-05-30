@@ -37,6 +37,7 @@ import {
   type PlateConfig,
 } from "./types";
 
+
 const config = reactive<PlateConfig>({
   text: "adsf",
   fontFamily: '"Times New Roman", serif',
