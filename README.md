@@ -40,6 +40,35 @@ The build emits two things:
 
 The 3D preview can show a 180 mm banana as a scale reference (toggle in the Debug section). Drop a CC0 low-poly banana at `client/public/reference/banana.glb` for the real model; otherwise the renderer falls back to a procedural curved-tube stand-in.
 
+## Deployment (Render.com via Docker)
+
+The repo ships everything Render needs to run the app:
+
+- `Dockerfile` — multi-stage build. Stage 1 compiles the Vite/Vue client with Node 20; stage 2 is the Deno 2.1 runtime image with ImageMagick installed. Fonts (`fonts/`) and tile masters (`tile_masters/`) are baked into the runtime image at build time so no persistent disk is required.
+- `.dockerignore` — keeps the 973 MB `tiffs/` source artwork (build-time only), `node_modules/`, the saved-page HTML snapshot, and other dev-only files out of the build context.
+- `render.yaml` — Render Blueprint. Creates a free-plan Docker web service in `frankfurt` that binds to `$PORT`, autodeploys on push to `main`, and uses `/api/health` as the health check.
+- `.github/workflows/ci.yml` — on every push/PR: install deps, run `vue-tsc + vite build`, type-check `server.ts` with `deno check`, and `docker build` to catch Dockerfile regressions. On push to `main` it then POSTs to the Render deploy hook stored in the `RENDER_DEPLOY_HOOK` repo secret.
+
+### First-time setup on Render
+
+1. Push this repo to GitHub (the `fonts/` and `tile_masters/` directories must be committed — see the comments in `.gitignore`).
+2. In Render: **New + → Blueprint**, point at the repo. Render reads `render.yaml` and creates the `lovely-labels` service.
+3. Copy the service's **Deploy Hook** URL from `Settings → Deploy Hook` and store it in the GitHub repo under **Settings → Secrets and variables → Actions → New repository secret**, name `RENDER_DEPLOY_HOOK`. The CI job will only trigger Render once this secret exists.
+
+### Building / running the image locally
+
+```bash
+docker build -t lovely-labels .
+docker run --rm -p 8080:8080 lovely-labels
+# → http://localhost:8080
+```
+
+The `magick` binary inside the container is provided by Debian's ImageMagick 6 (`convert`) via a symlink, so the same `--allow-run=magick` permission and `MAGICK_BIN` env var work in dev and prod.
+
+### Why the licensed assets live in this repo
+
+The licensed Celtics Modern fonts and the tile masters derived from `tiffs/` are **deliberately committed** to this PRIVATE repo so the Docker build can copy them into the runtime image. The original `.gitignore` rules are kept (commented out) at the top of the file — re-enable them and move the assets out of git before making the repo public.
+
 ## Layout
 
 ```

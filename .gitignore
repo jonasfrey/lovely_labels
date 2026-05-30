@@ -11,13 +11,25 @@ dist/
 
 # Server-only font files: licensed assets we deliberately don't ship to the
 # client. Rasterised text comes back via /api/text instead.
-/fonts/**
-!/fonts/.gitkeep
+# NOTE: committed to this PRIVATE repo so the Docker build (-> Render) can
+# bake them into the runtime image. Do NOT make this repo public without
+# first re-enabling the gitignore below and moving fonts out of git.
+# /fonts/**
+# !/fonts/.gitkeep
+
+# Licensed source artwork — must never be published. Kept locally only.
+# Build-time only: `deno task build-tiles` converts these to tile_masters/.
+/tiffs/
 
 # Server-only tile masters: derived from tiffs/ by `deno task build-tiles`.
 # Resized copies are served on demand via /api/tile.
-/tile_masters/
+# NOTE: committed to this PRIVATE repo so they ship in the Render image.
+# Re-enable the gitignore below if this repo ever goes public.
+# /tile_masters/
 
 # Vendored binaries auto-downloaded by scripts/run.ts (e.g. ImageMagick 7).
 /.tools/
 
+# Local-only files (school assignment doc, Claude Code session state).
+/DEP_Modul_FS26.md
+/.claude/

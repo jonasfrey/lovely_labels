@@ -1,0 +1,30 @@
+# Source tiles: 973 MB of licensed .tif sources. Only needed for
+# `deno task build-tiles`, NOT at runtime — tile_masters/ ships instead.
+tiffs/
+
+# Local build artifacts and caches
+**/node_modules
+client/dist
+.vite
+
+# Saved-page snapshot kept locally only
+Lovely Labels — 3D Name Plate Generator.html
+Lovely Labels — 3D Name Plate Generator_files/
+index-*.js
+
+# Vendored binaries (e.g. local ImageMagick auto-downloaded by run.ts)
+.tools/
+
+# VCS + editor
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+
+# Docs / dev-only
+DEP_Modul_FS26.md
+prompt.txt
+simple_key.jpg
+*.log
+.DS_Store
