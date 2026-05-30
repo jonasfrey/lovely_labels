@@ -57,6 +57,15 @@ The repo ships everything Render needs to run the app:
 
 ### Building / running the image locally
 
+Easiest — one liner via Compose:
+
+```bash
+docker compose up --build
+# → http://localhost:8080
+```
+
+Or with the raw Docker CLI:
+
 ```bash
 docker build -t lovely-labels .
 docker run --rm -p 8080:8080 lovely-labels

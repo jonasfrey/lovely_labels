@@ -1,0 +1,24 @@
+# Local one-liner: `docker compose up --build`
+# Builds the same Dockerfile that Render uses and exposes the app on
+# http://localhost:8080 — handy for reproducing the prod container on any
+# machine without installing Deno / Node / ImageMagick locally.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lovely-labels:local
+    container_name: lovely-labels
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      MAGICK_BIN: magick
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "deno eval 'await fetch(\"http://localhost:8080/api/health\").then(r => r.ok ? Deno.exit(0) : Deno.exit(1))'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
