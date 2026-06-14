@@ -38,3 +38,7 @@ dist/
 # Local-only files (school assignment doc, Claude Code session state).
 /DEP_Modul_FS26.md
 /.claude/
+
+# Batch-generated STL output from scripts/generate_all_stl.mjs — heavy and
+# reproducible, so kept local rather than committed.
+/generated_stl/
